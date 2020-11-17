@@ -20,7 +20,7 @@ class GitHubLogin extends Component {
 
   static defaultProps = {
     buttonText: "Sign in with GitHub",
-    redirectUri: "",
+    redirectUri: "http://localhost:3000/",
     scope: "user:email",
     onRequest: () => {},
     onSuccess: () => {},
@@ -52,11 +52,12 @@ class GitHubLogin extends Component {
   };
 
   onSuccess = (data) => {
+    console.log('data from on succes',data)
     if (!data.code) {
       return this.onFailure(new Error("'code' not found"));
     }
 
-    this.onGetAccessToken(data);
+    this.onGetAccessToken(data.code);
   };
 
   onFailure = (error) => {
@@ -68,13 +69,17 @@ class GitHubLogin extends Component {
     const body = {
       client_id: clientId,
       client_secret: clientSecret,
+      redirect_uri:"http://localhost:3000/",
+      state: "name",
       code: code,
     };
-    const options = { headers: { accept: "application/json" } };
+    console.log("code", code)
+    const options = { headers: { accept: "application/json"} };
     axios
-      .post(`https://github.com/login/oauth/access_token`, body, options)
+      .post(`https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token`, body, options)
       .then((access_token) => {
-        this.onGetProfile(access_token);
+        console.log(access_token)
+        this.onGetProfile(access_token.data.access_token);
       })
       .catch((err) => this.onFailure(err.message));
   };
@@ -87,7 +92,8 @@ class GitHubLogin extends Component {
         Authorization: "token " + token,
       },
     }).then((response) => {
-      this.props.onSuccess(response.data);
+      console.log("responnya : ", response)
+      this.props.onSuccess(response.data.name);
     });
   };
 
